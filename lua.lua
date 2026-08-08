@@ -5,8 +5,39 @@
 local env = _G
 
 -- =============================================================================
--- TASK LIBRARY - Native Roblox task (built-in on all modern executors)
+-- TASK LIBRARY POLYFILL (for executors without native task)
 -- =============================================================================
+if not task or not task.wait then
+    local heartbeat = game:GetService("RunService").Heartbeat
+    task = {
+        wait = function(t)
+            if not t or t <= 0 then heartbeat:Wait(); return end
+            local deadline = os.clock() + t
+            repeat heartbeat:Wait() until os.clock() >= deadline
+        end,
+        spawn = function(f)
+            local co = coroutine.create(f)
+            coroutine.resume(co)
+            return co
+        end,
+        delay = function(t, f)
+            local co = coroutine.create(function()
+                if t and t > 0 then
+                    local deadline = os.clock() + t
+                    repeat heartbeat:Wait() until os.clock() >= deadline
+                end
+                f()
+            end)
+            coroutine.resume(co)
+            return co
+        end,
+        cancel = function(co)
+            if co and coroutine.status(co) ~= "dead" then
+                pcall(coroutine.close, co)
+            end
+        end
+    }
+end
 
 -- =============================================================================
 -- CLEANUP: Kill all previous loops and UI on re-execute
