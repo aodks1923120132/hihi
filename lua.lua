@@ -1567,6 +1567,7 @@ end
 
 -- Fire upgrade remotes for all active individual toggles within a category (while near board)
 local function fireUpgradesForCategory(cat)
+    if not UPGRADES then return end
     for _, e in ipairs(UPGRADES) do
         if e[2] == cat and S[e[1]] and S[e[5]] then
             local ok = pcall(tryBuyUpgrade, e[2], e[3], e[4])
@@ -1667,6 +1668,7 @@ end
 
 -- Scan all active Realm 4 upgrades and return affordable categories + noobs
 local function findAffordableUpgrades()
+    if not UPGRADES then return {}, {} end
     local affordableCats = {}
     local affordableNoobs = {}
 
@@ -1733,7 +1735,7 @@ end
 local function startRealm4BoardLoop()
     if S._realm4BoardRunning then return end
     S._realm4BoardRunning = true
-    task.spawn(realm4BoardLoop)
+    pcall(function() task.spawn(realm4BoardLoop) end)
 end
 
 local function stopRealm4BoardLoop()
